@@ -48,6 +48,18 @@ async def websocket_endpoint(websocket: WebSocket):
     is_stopped = False
     speed = 1.0
 
+    async def non_blocking_sleep(delay: float):
+        nonlocal is_paused, is_stopped
+        elapsed = 0.0
+        while elapsed < delay:
+            if is_stopped:
+                break
+            if is_paused:
+                await asyncio.sleep(0.1)
+                continue
+            await asyncio.sleep(0.1)
+            elapsed += 0.1
+
     async def simulation_runner(scenario_id: str):
         nonlocal is_paused, is_stopped, speed
         
@@ -57,10 +69,11 @@ async def websocket_endpoint(websocket: WebSocket):
             return
             
         meta = scenario["metadata"]
+        # Instantiate FusionEngine in pure Zero-Knowledge Mode (no name metadata matching)
         engine = FusionEngine(
-            candidate_name=meta["candidate_name"],
-            candidate_email=meta["candidate_email"],
-            interviewer_names=meta["interviewer_names"]
+            candidate_name=None,
+            candidate_email=None,
+            interviewer_names=[]
         )
         
         # Determine candidate initial display name for LLM setup
@@ -88,15 +101,7 @@ async def websocket_endpoint(websocket: WebSocket):
             prev_time = event["time"]
             
             # Non-blocking check for pauses
-            elapsed = 0.0
-            while elapsed < delay:
-                if is_stopped:
-                    break
-                if is_paused:
-                    await asyncio.sleep(0.1)
-                    continue
-                await asyncio.sleep(0.1)
-                elapsed += 0.1
+            await non_blocking_sleep(delay)
                 
             if is_stopped:
                 break
@@ -123,7 +128,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 })
             
             if etype == "join":
-                engine.handle_join(epid, event["name"])
+                engine.handle_join(epid, event["name"], join_time=event["time"])
                 event_desc = f"Participant '{event['name']}' joined the meeting."
             elif etype == "leave":
                 pname = engine.participants.get(epid, {}).get("display_name", epid)
@@ -202,12 +207,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 
                 # Sleep between turns (4 seconds to simulate natural speaking)
                 delay = 4.0 / speed
-                elapsed = 0.0
-                while elapsed < delay:
-                    if is_stopped:
-                        break
-                    await asyncio.sleep(0.1)
-                    elapsed += 0.1
+                await non_blocking_sleep(delay)
                     
                 if is_stopped:
                     break
@@ -219,6 +219,9 @@ async def websocket_endpoint(websocket: WebSocket):
                     current_speaker_role,
                     conversation_history
                 )
+                
+                if text == "Meeting has ended.":
+                    break
                 
                 conversation_history.append({
                     "speaker": speaker_name,
