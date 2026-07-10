@@ -55,6 +55,7 @@ export default function App() {
   const [isPaused, setIsPaused] = useState<boolean>(false);
   const [wsStatus, setWsStatus] = useState<"connecting" | "connected" | "disconnected">("disconnected");
   const [selectedParticipantId, setSelectedParticipantId] = useState<string | null>(null);
+  const [showHowItWorks, setShowHowItWorks] = useState<boolean>(false);
   
   // Real-time states from backend
   const [currentTime, setCurrentTime] = useState<number>(0);
@@ -301,7 +302,29 @@ export default function App() {
         </div>
 
         {/* CONNECTION STATUS */}
-        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+          
+          {/* HOW IT WORKS BUTTON */}
+          <button 
+            onClick={() => setShowHowItWorks(prev => !prev)}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              padding: "6px 12px",
+              borderRadius: "6px",
+              border: showHowItWorks ? "1px solid var(--accent-purple)" : "1px solid var(--border-subtle)",
+              backgroundColor: showHowItWorks ? "rgba(139, 92, 246, 0.15)" : "rgba(255,255,255,0.03)",
+              color: showHowItWorks ? "var(--text-primary)" : "var(--text-secondary)",
+              fontSize: "13px",
+              fontWeight: "600",
+              cursor: "pointer",
+              transition: "all 0.2s"
+            }}
+          >
+            <HelpCircle size={14} /> How it works
+          </button>
+
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <span style={{ 
               width: "8px", 
@@ -316,6 +339,46 @@ export default function App() {
           </div>
         </div>
       </header>
+
+      {/* HOW IT WORKS DROPDOWN CARD */}
+      {showHowItWorks && (
+        <section className="glass-panel" style={{ padding: "24px", marginBottom: "20px", border: "1px solid var(--accent-purple-glow)", background: "rgba(139, 92, 246, 0.03)" }}>
+          <h2 style={{ fontSize: "16px", fontWeight: "700", color: "var(--accent-purple)", marginBottom: "12px", display: "flex", alignItems: "center", gap: "8px" }}>
+            <HelpCircle size={18} /> How Sherlock Candidate Identification System (SCI) Works
+          </h2>
+          <p style={{ fontSize: "13px", color: "var(--text-secondary)", marginBottom: "20px", lineHeight: "1.5" }}>
+            Sherlock is a multi-signal Bayesian evidence fusion system designed to identify the correct candidate in virtual meetings (even under adversarial conditions such as typos, generic device profiles, panel interviewers, or nickname masks). Here are the simple steps of how the system works:
+          </p>
+          
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "20px" }}>
+            
+            <div style={{ backgroundColor: "rgba(0,0,0,0.15)", padding: "16px", borderRadius: "8px", border: "1px solid var(--border-subtle)" }}>
+              <div style={{ fontSize: "11px", fontWeight: "700", textTransform: "uppercase", color: "var(--accent-purple)", marginBottom: "8px", letterSpacing: "1px" }}>Step 1: Multi-Signal Ingestion</div>
+              <h3 style={{ fontSize: "14px", fontWeight: "600", color: "var(--text-primary)", marginBottom: "6px" }}>1. Listen to Stream Signals</h3>
+              <p style={{ fontSize: "12px", color: "var(--text-secondary)", lineHeight: "1.4" }}>
+                As the meeting runs, Sherlock listens to 6 different "weak signals": join timing, display name spelling, active webcam/screensharing states, speech ratio, turn dynamics (who speaks next), and spoken transcript keyphrases.
+              </p>
+            </div>
+            
+            <div style={{ backgroundColor: "rgba(0,0,0,0.15)", padding: "16px", borderRadius: "8px", border: "1px solid var(--border-subtle)" }}>
+              <div style={{ fontSize: "11px", fontWeight: "700", textTransform: "uppercase", color: "var(--accent-purple)", marginBottom: "8px", letterSpacing: "1px" }}>Step 2: Bayesian Evidence Fusion</div>
+              <h3 style={{ fontSize: "14px", fontWeight: "600", color: "var(--text-primary)", marginBottom: "6px" }}>2. Calculate & Shift Probabilities</h3>
+              <p style={{ fontSize: "12px", color: "var(--text-secondary)", lineHeight: "1.4" }}>
+                The engine fuses these sub-signals mathematically using a Bayesian belief Softmax model. Positive matches (like screensharing or saying "my resume") boost confidence, while negative indicators (like silent observers or matching interviewer blocklists) push confidence to zero.
+              </p>
+            </div>
+            
+            <div style={{ backgroundColor: "rgba(0,0,0,0.15)", padding: "16px", borderRadius: "8px", border: "1px solid var(--border-subtle)" }}>
+              <div style={{ fontSize: "11px", fontWeight: "700", textTransform: "uppercase", color: "var(--accent-purple)", marginBottom: "8px", letterSpacing: "1px" }}>Step 3: Continuous Learning</div>
+              <h3 style={{ fontSize: "14px", fontWeight: "600", color: "var(--text-primary)", marginBottom: "6px" }}>3. Dynamic Feedback Loop</h3>
+              <p style={{ fontSize: "12px", color: "var(--text-secondary)", lineHeight: "1.4" }}>
+                The dashboard renders real-time explainability verdicts, weak signal charts, and a conversational graph. When the interview ends, correct/incorrect selections update the engine's learning weights so the model improves dynamically over time.
+              </p>
+            </div>
+            
+          </div>
+        </section>
+      )}
 
       {/* CONTROLS SECTION */}
       <section className="glass-panel" style={{ padding: "20px", marginBottom: "20px" }}>
