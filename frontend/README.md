@@ -1,32 +1,29 @@
-# React + TypeScript + Vite
+# Sherlock Candidate Identification System (SCI) - Frontend Dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+This directory contains the React + TypeScript frontend dashboard for the Sherlock Candidate Identification System.
 
-Currently, two official plugins are available:
+## Features
+- **Live Meeting Gallery**: Displays connected participants, speaking indicators, active webcams/screenshares, and real-time candidate probabilities.
+- **Explainability Panel**: Attributes positive and negative evidence for the identified candidate based on Jaro-Winkler name similarity, speech patterns, turn-taking graph centrality, semantic transcript keys, and join timing.
+- **Conversation Analysis**: Displays a circular turn-taking graph (dynamic interaction edges) and a live confidence tracking timeline chart.
+- **Log Feeds**: Real-time meeting stream logs and dialog transcript viewer.
+- **Controls**: Choose from 6 pre-configured meeting simulation scenarios and adjust simulation speeds (1x, 2x, 5x).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Tech Stack
+- **Framework**: Vite + React 19 + TypeScript
+- **Icons**: Lucide React
+- **Styling**: Glassmorphism UI styled with vanilla CSS (defined in `src/index.css`)
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
-```
-
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## Getting Started
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
+2. Start Vite dev server:
+   ```bash
+   npm run dev
+   ```
+3. Build for production:
+   ```bash
+   npm run build
+   ```
