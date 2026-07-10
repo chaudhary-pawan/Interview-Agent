@@ -197,7 +197,32 @@ flowchart TB
 
 ---
 
+## 💡 Engineering Approach & Design Decisions
+
+In designing the Sherlock Candidate Identification System (SCI), I adopted a **probabilistic, multi-signal evidence fusion approach** rather than relying on a rigid, rule-based decision tree. The primary goal was to construct a real-time system that is both highly resilient to noise (e.g., spelling typos, generic device names like "MacBook Pro", panel interviewers, and silent recording bots) and completely explainable.
+
+### Key Engineering Decisions
+1. **Bayesian Belief Accumulation (Softmax Probability)**: Instead of binary classification ("is candidate" / "is not"), every participant starts with an equal probability of being the candidate. As streaming event indicators are captured, individual signal weights shift the probability space using Softmax normalization combined with a fixed "Null Candidate" threshold. This prevents premature false positives.
+2. **Dynamic Role Bootstrapping (Zero-Knowledge Mode)**: In the absence of pre-registered metadata (such as interviewer or candidate lists), the engine scans the live transcript stream for semantic interviewer markers. When a user is tagged as a verified interviewer, this dynamically unlocks the Turn-Taking Interaction Graph, enabling the system to evaluate conversational proximity.
+3. **Continuous Weight Optimization (Adaptive Weight Manager)**: To satisfy the learning loop criteria, I implemented a Bayesian-inspired feedback loop. Correct or incorrect session identifications trigger a `session_count` update, applying a small weight correction (2%) to signals based on their contribution.
+
+---
+
+## ⚖️ Architectural Trade-Offs
+
+To maintain high efficiency, zero latency, and recruiter-level code quality, several intentional trade-offs were made:
+
+| Chosen Path | Alternative Considered | Trade-off Rationale |
+|---|---|---|
+| **Multi-Signal Bayesian Fusion** | Full LLM-based Dialog Agent | **Math over Inference**: Fusing 6 deterministic weak signals runs in micro-seconds on standard CPUs, is 100% explainable (verifiable math), and costs zero API tokens. An LLM checking every turn would introduce massive latency, add cost, and be prone to non-deterministic hallucinations. |
+| **Regex-Based NLP Keyword Scanning** | Sentence Embeddings & Vector Search | **Latency vs. Semantic Recall**: Fast regex keyword scanning runs instantly on CPU with zero dependencies. Sentence embeddings are more robust to synonyms but require deep learning packages (like PyTorch/Transformers) that drastically increase the container size, memory footprint, and cold-start times on hosting platforms (like Render). |
+| **Stateful WebSockets** | Stateless HTTP Polling | **Real-Time Interactive Updates vs. Horizontal Scaling**: WebSockets allow instantaneous dashboard UI updates on participant events. However, WebSockets make horizontal scaling more complex (requiring sticky sessions/Redis adapters) compared to stateless HTTP polling. I prioritized low-latency user experience for the prototype. |
+| **Fuzzy String Match Threshold (85%)** | Higher (95%) or Lower (70%) thresholds | **Precision vs. Recall**: A Jaro-Winkler threshold of 85% is the sweet spot. A higher threshold fails on minor user typos (e.g. "Alx" vs "Alex"). A lower threshold is too loose and risks false positive name matches with similar sounding interviewer names. |
+
+---
+
 ## 📈 Evaluation & Test Results
+
 
 ### Automated Test Suite
 
