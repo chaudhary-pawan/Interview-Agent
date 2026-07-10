@@ -23,17 +23,22 @@ class ConversationGenerator:
         self.api_key = os.getenv("GEMINI_API_KEY")
         self.use_llm = False
         if self.api_key:
-            try:
-                genai.configure(api_key=self.api_key)
-                # Use gemini-2.0-flash for fast, real-time dialogue (no thinking step)
-                self.model = genai.GenerativeModel("gemini-2.0-flash")
-                # Validate the API key on startup
-                self.model.generate_content("ping", request_options={"timeout": 10.0})
-                self.use_llm = True
-                print("Gemini API key validated successfully. Using LLM mode.")
-            except Exception as e:
-                print(f"Gemini API key validation failed: {e}. Falling back to local template mode.")
-                self.use_llm = False
+            genai.configure(api_key=self.api_key)
+            model_names = [os.getenv("GEMINI_MODEL")] if os.getenv("GEMINI_MODEL") else ["gemini-2.5-flash", "gemini-2.0-flash"]
+            
+            for model_name in model_names:
+                try:
+                    self.model = genai.GenerativeModel(model_name)
+                    # Validate the API key and model on startup
+                    self.model.generate_content("ping", request_options={"timeout": 10.0})
+                    self.use_llm = True
+                    print(f"Gemini API key validated successfully. Using model: {model_name}")
+                    break
+                except Exception as e:
+                    print(f"Gemini model {model_name} validation failed: {e}")
+            
+            if not self.use_llm:
+                print("All Gemini models failed validation. Falling back to local template mode.")
 
         # Template Pools for fallback mode
         self.interviewer_greetings = [
@@ -65,11 +70,39 @@ class ConversationGenerator:
             {
                 "question": "Tell me about a project on your resume that you are most proud of.",
                 "answer": "I built a custom state-management library for our frontend stack. My background is in front-end performance tuning and micro-frontends architecture."
+            },
+            {
+                "question": "How do you approach writing unit tests and ensuring code quality in your projects?",
+                "answer": "I write unit tests for business logic using pytest or Jest, aiming for high coverage on core paths, and use CI/CD pipelines to run them automatically on every push."
+            },
+            {
+                "question": "What is your experience with containerization and cloud deployments?",
+                "answer": "I use Docker to containerize our services and deploy them to AWS ECS. I also write Terraform scripts to define our infrastructure as code, which keeps our environments consistent."
+            },
+            {
+                "question": "How do you handle disagreements or design conflicts within a software engineering team?",
+                "answer": "I prefer to look at data and run quick prototypes or benchmarks to compare options. I focus on constructive discussion and align with the team's decision once a path is chosen."
             }
         ]
-        
-        # Select a single QA pair to maintain consistency throughout this session
-        self.selected_qa = random.choice(self.qa_pairs)
+
+        self.closing_qa = [
+            {
+                "question": "Great. What are your expectations regarding remote work and working hours?",
+                "answer": "I am fully comfortable with remote work and have been doing it for years. I usually align my hours with the core team timezone to facilitate collaboration."
+            },
+            {
+                "question": "Excellent. That matches what we are looking for. Do you have any questions for me about the team or the role?",
+                "answer": "Yes, I wanted to ask about the team structure. How are project responsibilities distributed among front-end and back-end developers?"
+            },
+            {
+                "question": "We have cross-functional squads where developers own features end-to-end. Any other questions?",
+                "answer": "That sounds great. How does the deployment schedule look? Do you deploy multiple times a day or run on a sprint release cycle?"
+            },
+            {
+                "question": "We deploy continuously to staging, and promote to production twice a week. We'll be in touch with next steps soon!",
+                "answer": "Thank you so much for your time today. I look forward to hearing from you!"
+            }
+        ]
 
         self.screenshare_prompts = [
             "Great, thanks. Do you have a project or some code you can share and walk us through?",
@@ -123,27 +156,40 @@ class ConversationGenerator:
         cand_turns = sum(1 for h in history if h["role"] == "candidate")
         int_turns = sum(1 for h in history if h["role"] == "interviewer")
         
+        num_qa = len(self.qa_pairs)
+        num_closing = len(self.closing_qa)
+        
         if speaker_role == "interviewer":
             if int_turns == 0:
                 return random.choice(self.interviewer_greetings)
-            elif int_turns == 1:
-                return self.selected_qa["question"]
-            elif int_turns == 2:
+            elif 1 <= int_turns <= num_qa:
+                return self.qa_pairs[int_turns - 1]["question"]
+            elif int_turns == num_qa + 1:
                 return random.choice(self.screenshare_prompts)
+            elif num_qa + 2 <= int_turns <= num_qa + 1 + num_closing:
+                idx = int_turns - (num_qa + 2)
+                return self.closing_qa[idx]["question"]
+            elif int_turns == num_qa + 2 + num_closing:
+                return "The interview is now complete. Thank you again, have a great day!"
             else:
-                return "Excellent. That matches what we are looking for. Do you have any questions for me?"
+                return "Meeting has ended."
         else: # candidate
             if cand_turns == 0:
                 return random.choice(self.candidate_identifications).format(
                     joined_name=self.candidate_joined_name, 
                     name=self.candidate_name
                 )
-            elif cand_turns == 1:
-                return self.selected_qa["answer"]
-            elif cand_turns == 2:
+            elif 1 <= cand_turns <= num_qa:
+                return self.qa_pairs[cand_turns - 1]["answer"]
+            elif cand_turns == num_qa + 1:
                 return random.choice(self.screenshare_answers)
+            elif num_qa + 2 <= cand_turns <= num_qa + 1 + num_closing:
+                idx = cand_turns - (num_qa + 2)
+                return self.closing_qa[idx]["answer"]
+            elif cand_turns == num_qa + 2 + num_closing:
+                return "Thank you so much for your time today. I look forward to hearing from you!"
             else:
-                return "Thank you. Yes, in my previous role I worked closely with product stakeholders..."
+                return "Meeting has ended."
 
     def generate_turn(self, speaker_id: str, speaker_name: str, role: str, history: List[Dict[str, str]]) -> str:
         """
