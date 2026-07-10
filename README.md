@@ -201,7 +201,7 @@ flowchart TB
 
 ### Automated Test Suite
 
-We verify the engine using **40 automated unit and integration tests** across **9 test classes** under `backend/tests/test_fusion.py`:
+I verify the engine using **40 automated unit and integration tests** across **9 test classes** under `backend/tests/test_fusion.py`:
 
 | Test Class | Tests | Coverage |
 |---|---|---|
