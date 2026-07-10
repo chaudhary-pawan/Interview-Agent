@@ -304,4 +304,7 @@ async def websocket_endpoint(websocket: WebSocket):
         print("WebSocket disconnected")
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    import os
+    port = int(os.getenv("PORT", 8000))
+    # Turn off reload in production to prevent subprocess issues on Render
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=False)
