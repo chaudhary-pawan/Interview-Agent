@@ -47,6 +47,15 @@ interface TimelinePoint {
   confidences: Record<string, number>;
 }
 
+// Dynamic backend endpoints for local and cloud deployment (e.g. Render)
+const backendHost = import.meta.env.VITE_BACKEND_URL || "localhost:8000";
+const isLocal = backendHost.includes("localhost") || backendHost.includes("127.0.0.1");
+const httpProtocol = isLocal ? "http://" : "https://";
+const wsProtocol = isLocal ? "ws://" : "wss://";
+
+const apiEndpoint = `${httpProtocol}${backendHost}`;
+const wsEndpoint = `${wsProtocol}${backendHost}`;
+
 export default function App() {
   const [scenarios, setScenarios] = useState<any[]>([]);
   const [selectedScenario, setSelectedScenario] = useState<string>("scenario_1");
@@ -91,7 +100,7 @@ export default function App() {
 
   const fetchScenarios = async () => {
     try {
-      const res = await fetch("http://localhost:8000/api/scenarios");
+      const res = await fetch(`${apiEndpoint}/api/scenarios`);
       const data = await res.json();
       setScenarios(data);
       if (data.length > 0) {
@@ -104,7 +113,7 @@ export default function App() {
 
   const connectWS = () => {
     setWsStatus("connecting");
-    const ws = new WebSocket("ws://localhost:8000/ws");
+    const ws = new WebSocket(`${wsEndpoint}/ws`);
 
     ws.onopen = () => {
       setWsStatus("connected");
