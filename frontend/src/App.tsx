@@ -319,6 +319,12 @@ export default function App() {
 
       {/* CONTROLS SECTION */}
       <section className="glass-panel" style={{ padding: "20px", marginBottom: "20px" }}>
+        <h2 style={{ fontSize: "14px", fontWeight: "600", color: "var(--text-secondary)", marginBottom: "4px" }}>
+          SIMULATION CONTROL PANEL
+        </h2>
+        <p style={{ fontSize: "11.5px", color: "var(--text-muted)", marginBottom: "16px", lineHeight: "1.3" }}>
+          Select a pre-configured meeting scenario, configure the simulation speed, and use the controls to start, pause, or stop the real-time feed.
+        </p>
         <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: "16px" }}>
           
           {/* SCENARIO CHOICE */}
@@ -493,9 +499,12 @@ export default function App() {
           
           {/* WEBCAM GALLERY */}
           <div className="glass-panel" style={{ padding: "20px", display: "flex", flexDirection: "column", flex: 1.2 }}>
-            <h2 style={{ fontSize: "14px", fontWeight: "600", letterSpacing: "0.5px", color: "var(--text-secondary)", marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
+            <h2 style={{ fontSize: "14px", fontWeight: "600", letterSpacing: "0.5px", color: "var(--text-secondary)", marginBottom: "4px", display: "flex", alignItems: "center", gap: "8px" }}>
               <Video size={16} /> LIVE MEETING GALLERY
             </h2>
+            <p style={{ fontSize: "11.5px", color: "var(--text-muted)", marginBottom: "16px", lineHeight: "1.3" }}>
+              Displays active meeting participants, their webcam/screenshare states, and their calculated candidate likelihood percentage.
+            </p>
             
             {engineStatus && engineStatus.participants.length > 0 ? (
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", flex: 1 }}>
@@ -608,9 +617,12 @@ export default function App() {
 
           {/* SIMULATED SYSTEM LIVE LOGS */}
           <div className="glass-panel" style={{ padding: "20px", display: "flex", flexDirection: "column", flex: 1 }}>
-            <h2 style={{ fontSize: "14px", fontWeight: "600", color: "var(--text-secondary)", marginBottom: "12px", display: "flex", alignItems: "center", gap: "8px" }}>
+            <h2 style={{ fontSize: "14px", fontWeight: "600", color: "var(--text-secondary)", marginBottom: "4px", display: "flex", alignItems: "center", gap: "8px" }}>
               <Activity size={16} /> LIVE INGESTION LOGS
             </h2>
+            <p style={{ fontSize: "11.5px", color: "var(--text-muted)", marginBottom: "12px", lineHeight: "1.3" }}>
+              A real-time stream of raw event signals (joins, screen sharing, webcam state changes) emitted by meeting participants.
+            </p>
             <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "8px", maxHeight: "250px" }}>
               {eventLogs.length > 0 ? (
                 eventLogs.map((log, idx) => (
@@ -637,9 +649,12 @@ export default function App() {
           
           {/* TOP DETECTED CANDIDATE SUMMARY */}
           <div className="glass-panel animate-glow" style={{ padding: "20px", display: "flex", flexDirection: "column", gap: "14px" }}>
-            <h2 style={{ fontSize: "14px", fontWeight: "600", color: "var(--text-secondary)", display: "flex", alignItems: "center", gap: "8px" }}>
+            <h2 style={{ fontSize: "14px", fontWeight: "600", color: "var(--text-secondary)", marginBottom: "4px", display: "flex", alignItems: "center", gap: "8px" }}>
               <Award size={16} /> DETECTED CANDIDATE
             </h2>
+            <p style={{ fontSize: "11.5px", color: "var(--text-muted)", marginBottom: "10px", lineHeight: "1.3" }}>
+              The participant identified as the candidate by the Bayesian fusion engine, along with the automated reasoning verdict.
+            </p>
 
             {engineStatus && engineStatus.candidate_identified && activeCandidate ? (
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
@@ -674,9 +689,12 @@ export default function App() {
 
           {/* SIGNAL CONTRIBUTION BREAKDOWN */}
           <div className="glass-panel" style={{ padding: "20px", display: "flex", flexDirection: "column", flex: 1 }}>
-            <h2 style={{ fontSize: "14px", fontWeight: "600", color: "var(--text-secondary)", marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
+            <h2 style={{ fontSize: "14px", fontWeight: "600", color: "var(--text-secondary)", marginBottom: "4px", display: "flex", alignItems: "center", gap: "8px" }}>
               <Zap size={16} /> WEAK SIGNAL WEIGHTS & SCORES {inspectedParticipant ? `(${inspectedParticipant.display_name})` : ""}
             </h2>
+            <p style={{ fontSize: "11.5px", color: "var(--text-muted)", marginBottom: "16px", lineHeight: "1.3" }}>
+              Detailed scoring breakdown of individual behavioral metrics (talking ratio, conversational graph, keyword match, presence markers) for the selected participant.
+            </p>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "16px", flex: 1, justifyContent: "space-around" }}>
               {engineStatus && inspectedParticipant && inspectedParticipant.signals && Object.keys(inspectedParticipant.signals).length > 0 ? (
@@ -727,10 +745,13 @@ export default function App() {
         <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
           
           {/* TURN TAKING GRAPH & TIMELINE TABS */}
-          <div className="glass-panel" style={{ padding: "20px", display: "flex", flexDirection: "column", height: "300px" }}>
-            <h2 style={{ fontSize: "14px", fontWeight: "600", color: "var(--text-secondary)", marginBottom: "10px", display: "flex", alignItems: "center", gap: "8px" }}>
+          <div className="glass-panel" style={{ padding: "20px", display: "flex", flexDirection: "column", height: "320px" }}>
+            <h2 style={{ fontSize: "14px", fontWeight: "600", color: "var(--text-secondary)", marginBottom: "4px", display: "flex", alignItems: "center", gap: "8px" }}>
               <Activity size={16} /> CONVERSATION ANALYSIS
             </h2>
+            <p style={{ fontSize: "11.5px", color: "var(--text-muted)", marginBottom: "10px", lineHeight: "1.3" }}>
+              Visualizes who is interacting with whom (turn-taking graph) and how the engine's confidence curves evolve over time.
+            </p>
 
             <div style={{ display: "flex", flex: 1, gap: "10px", alignItems: "center" }}>
               
@@ -831,9 +852,12 @@ export default function App() {
 
           {/* TRANSCRIPT DIALOGUE FEED */}
           <div className="glass-panel" style={{ padding: "20px", display: "flex", flexDirection: "column", flex: 1 }}>
-            <h2 style={{ fontSize: "14px", fontWeight: "600", color: "var(--text-secondary)", marginBottom: "12px", display: "flex", alignItems: "center", gap: "8px" }}>
+            <h2 style={{ fontSize: "14px", fontWeight: "600", color: "var(--text-secondary)", marginBottom: "4px", display: "flex", alignItems: "center", gap: "8px" }}>
               <MessageSquare size={16} /> LIVE MEET TRANSCRIPT
             </h2>
+            <p style={{ fontSize: "11.5px", color: "var(--text-muted)", marginBottom: "12px", lineHeight: "1.3" }}>
+              The real-time speech-to-text transcript from the meeting stream, highlighting key applicant-indicative words.
+            </p>
 
             <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "10px", maxHeight: "250px" }}>
               {transcripts.length > 0 ? (
