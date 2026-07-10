@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { 
   Play, Pause, Square, Zap, Users, Video, VideoOff, 
   Monitor, MessageSquare, HelpCircle, ShieldCheck, 
@@ -22,7 +22,9 @@ interface Participant {
   confidence: number;
   signals: Record<string, ParticipantSignal>;
   explanation: string;
+  role: "interviewer" | "observer" | "candidate" | "unknown";
 }
+
 
 interface EventLog {
   type: string;
@@ -235,7 +237,7 @@ export default function App() {
   };
 
   // Circular graph positions for turn-taking
-  const getParticipantPositions = () => {
+  const participantPositions = useMemo(() => {
     if (!engineStatus) return [];
     const count = engineStatus.participants.length;
     const center = 100;
@@ -248,12 +250,10 @@ export default function App() {
         x: center + radius * Math.cos(angle),
         y: center + radius * Math.sin(angle),
         is_candidate: p.id === engineStatus.candidate_id,
-        is_interviewer: currentScenarioMeta?.metadata.interviewer_names.some(
-          (name: string) => p.display_name.toLowerCase().includes(name.toLowerCase())
-        )
+        is_interviewer: p.role === "interviewer"
       };
     });
-  };
+  }, [engineStatus]);
 
   // Helper to color confidence
   const getConfidenceColor = (conf: number) => {
@@ -478,24 +478,9 @@ export default function App() {
 
         {/* CURRENT SCENARIO DESCRIPTION */}
         {currentScenarioMeta && (
-          <div style={{ marginTop: "16px", paddingTop: "16px", borderTop: "1px solid var(--border-subtle)", fontSize: "14px", display: "flex", gap: "40px" }}>
-            <div style={{ flex: 1 }}>
-              <span style={{ color: "var(--text-muted)", fontSize: "12px", display: "block", marginBottom: "4px" }}>SCENARIO DESCRIPTION</span>
-              <p style={{ color: "var(--text-secondary)", lineHeight: "1.4" }}>{currentScenarioMeta.description}</p>
-            </div>
-            <div style={{ display: "flex", gap: "24px" }}>
-              <div>
-                <span style={{ color: "var(--text-muted)", fontSize: "12px", display: "block", marginBottom: "4px" }}>CANDIDATE IN APPLICATION</span>
-                <span style={{ fontWeight: "600", color: "var(--accent-purple)" }}>{currentScenarioMeta.metadata.candidate_name}</span>
-                <span style={{ display: "block", fontSize: "12px", color: "var(--text-muted)" }}>{currentScenarioMeta.metadata.candidate_email}</span>
-              </div>
-              <div>
-                <span style={{ color: "var(--text-muted)", fontSize: "12px", display: "block", marginBottom: "4px" }}>EXPECTED INTERVIEWERS</span>
-                <span style={{ fontWeight: "600", color: "var(--text-secondary)", display: "block" }}>
-                  {currentScenarioMeta.metadata.interviewer_names.join(", ")}
-                </span>
-              </div>
-            </div>
+          <div style={{ marginTop: "16px", paddingTop: "16px", borderTop: "1px solid var(--border-subtle)", fontSize: "14px" }}>
+            <span style={{ color: "var(--text-muted)", fontSize: "12px", display: "block", marginBottom: "4px" }}>SCENARIO DESCRIPTION</span>
+            <p style={{ color: "var(--text-secondary)", lineHeight: "1.4" }}>{currentScenarioMeta.description}</p>
           </div>
         )}
       </section>
@@ -596,11 +581,15 @@ export default function App() {
                         <div style={{ fontWeight: "600", fontSize: "13px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                           {p.display_name}
                         </div>
-                        <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "2px" }}>
+                         <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "2px" }}>
                           Role: {
-                            currentScenarioMeta?.metadata.interviewer_names.some(
-                              (name: string) => p.display_name.toLowerCase().includes(name.toLowerCase())
-                            ) ? "Interviewer" : isCandidate ? "Identified Candidate" : "Observer/External"
+                            p.role === "interviewer" 
+                              ? "Interviewer" 
+                              : p.role === "candidate" 
+                              ? "Identified Candidate" 
+                              : p.role === "observer" 
+                              ? "Observer/Bot" 
+                              : "External Participant"
                           }
                         </div>
                       </div>
@@ -751,8 +740,8 @@ export default function App() {
                 <div style={{ width: "200px", height: "200px", position: "relative" }}>
                   <svg width="200" height="200">
                     {/* Draw links */}
-                    {engineStatus && getParticipantPositions().map((posFrom) => {
-                      return getParticipantPositions().map((posTo) => {
+                    {engineStatus && participantPositions.map((posFrom) => {
+                      return participantPositions.map((posTo) => {
                         if (posFrom.id === posTo.id) return null;
                         
                         // Fake visual line thickness for turn graph
@@ -773,7 +762,7 @@ export default function App() {
                     })}
 
                     {/* Draw nodes */}
-                    {engineStatus && getParticipantPositions().map((pos) => (
+                    {engineStatus && participantPositions.map((pos) => (
                       <g key={pos.id}>
                         <circle 
                           cx={pos.x} 
